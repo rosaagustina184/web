@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teori Graph & Penentuan Rute Terdekat di Google Maps</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --accent-hover: #0284c7;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.8;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #ffffff, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        article {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            color: #cbd5e1;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            margin: 2rem 0 1rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        ul {
+            margin-bottom: 1.5rem;
+            padding-left: 1.2rem;
+            color: #cbd5e1;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight-box {
+            background: rgba(56, 189, 248, 0.05);
+            border-left: 4px solid var(--accent-color);
+            padding: 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+        }
+
+        /* --- STYLING BAGIAN VISUAL & SCROLL BOX AGAR RAPI --- */
+        .visual-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .visual-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .visual-card h3 {
+            font-size: 0.95rem;
+            color: var(--accent-color);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Kontainer Scroll Terkunci di dalam Box */
+        .visual-scroll-box {
+            width: 100%;
+            height: 240px;
+            overflow: auto; /* Memungkinkan scroll vertikal & horizontal jika gambar besar */
+            background: #0b0f19;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        /* Kustomisasi scrollbar agar senada dengan tema */
+        .visual-scroll-box::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .visual-scroll-box::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        .visual-scroll-box::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .visual-scroll-box img {
+            display: block;
+            width: auto;
+            height: 100%;
+            min-width: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            margin: 0 auto;
+        }
+
+        a.external-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+            border-bottom: 1px dashed var(--accent-color);
+        }
+
+        a.external-link:hover {
+            color: var(--accent-hover);
+            border-bottom-style: solid;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            article {
+                padding: 1.5rem;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+            .visual-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="tag">KELOMPOK 8</span>
+        <h1>Memahami Teori Graph dalam Penentuan Rute Terdekat Google Maps</h1>
+        <div class="meta">Ditulis untuk Pembelajaran Matematika Diskrit</div>
+    </header>
+
+    <article>
+        <p>Setiap hari kita mengandalkan Google Maps untuk menemukan jalur tercepat menuju tujuan yang kita tuju. Di balik antarmuka yang visual dan intuitif tersebut, terdapat konsep matematika terapan yang sangat krusial, yaitu <strong>Teori Graph</strong>.</p>
+
+        <h2>Apa Itu Teori Graph?</h2>
+        <p>Dalam ilmu komputer, graph adalah struktur data yang terdiri dari sekumpulan titik yang dihubungkan oleh garis. Pada pemetaan Google Maps:</p>
+        <ul>
+            <li><strong>Vertex (Node):</strong> Mewakili lokasi fisik seperti persimpangan jalan, titik koordinat, atau tempat tujuan.</li>
+            <li><strong>Edge (Sisi):</strong> Mewakili jalan yang menghubungkan dua lokasi tersebut.</li>
+            <li><strong>Weight (Bobot):</strong> Nilai yang diberikan pada setiap garis, yang bisa berupa jarak, waktu tempuh, atau tingkat kemacetan.</li>
+        </ul>
+
+        <!-- BAGIAN VISUAL / GAMBAR -->
+        <div class="visual-container">
+            <div class="visual-card">
+                <h3>Ilustrasi Vertex & Edge Graph</h3>
+                <div class="visual-scroll-box">
+                    <!-- Ganti nama file sesuai dengan file gambar Anda di folder yang sama -->
+                    <img src="images/ilustrasi-graph.jpeg" alt="Ilustrasi Graph">
+                </div>
+            </div>
+            <div class="visual-card">
+                <h3>Simulasi Rute Peta (Shortest Path)</h3>
+                <div class="visual-scroll-box">
+                    <img src="images/rute-peta.jpeg" alt="Simulasi Rute Terdekat di Peta">
+                </div>
+            </div>
+        </div>
+
+        <h2>Pencarian Rute Terdekat (Shortest Path)</h2>
+        <p>Untuk menghitung jalur terbaik dari titik awal ke titik akhir, sistem memanfaatkan algoritma pencarian rute terdekat. Salah satu yang paling terkenal adalah <strong>Algoritma Dijkstra</strong> dan pengembangan berbasis heuristik seperti <strong>A* (A-Star)</strong>.</p>
+
+        <div class="highlight-box">
+            <p>Algoritma mengevaluasi kombinasi bobot pada setiap jalur untuk menemukan total nilai terkecil (waktu tercepat atau jarak terpendek) secara real-time.</p>
+        </div>
+
+        <h2>Penerapan di Dunia Akademis</h2>
+        <p>Penerapan teori graph dan analisis algoritma ini menjadi salah satu topik penting yang dipelajari dalam kurikulum bidang informatika dan sistem informasi, seperti yang diajarkan di <a href="https://www.upnvyk.ac.id" target="_blank" rel="noopener noreferrer" class="external-link">UPN Veteran Yogyakarta</a>.</p>
+
+        <h2>Referensi & Sumber Materi</h2>
+        <p>Untuk mendalami materi mengenai teori graph dan implementasinya pada sistem navigasi, Anda dapat merujuk pada beberapa literatur berikut:</p>
+        <ul style="list-style-type: disc; margin-left: 1.5rem;">
+            <li>Munir, R. (2020). <em>Matematika Diskrit</em>. Informatika Bandung. (Bab mengenai Teori Graph dan Algoritma Dijkstra).</li>
+            <li>Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). <em>Introduction to Algorithms</em> (4th ed.). MIT Press.</li>
+            <li>Jurnal Teknologi Informasi. (2023). "Optimalisasi Penentuan Rute Terdekat Menggunakan Algoritma A* pada Sistem Pemetaan Digital".</li>
+        </ul>
+    </article>
+
+    <footer>
+        &copy; 2026 Artikel Edukasi Teori Graph.
+    </footer>
+</div>
+
+</body>
+</html>
